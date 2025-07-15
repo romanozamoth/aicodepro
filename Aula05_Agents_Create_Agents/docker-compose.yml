@@ -1,0 +1,201 @@
+version: '3.8'
+
+services:
+  rowboat:
+    build:
+      context: ./apps/rowboat
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_CONNECTION_STRING=mongodb://mongo:27017/rowboat
+      - USE_AUTH=${USE_AUTH}
+      - AUTH0_SECRET=test_secret
+      - AUTH0_BASE_URL=http://localhost:3000
+      - AUTH0_ISSUER_BASE_URL=https://test.com
+      - AUTH0_CLIENT_ID=test
+      - AUTH0_CLIENT_SECRET=test
+      - AGENTS_API_URL=http://rowboat_agents:3001
+      - AGENTS_API_KEY=${AGENTS_API_KEY}
+      - COPILOT_API_URL=http://copilot:3002
+      - COPILOT_API_KEY=${COPILOT_API_KEY}
+      - REDIS_URL=redis://redis:6379
+      - USE_RAG=${USE_RAG}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+      - USE_RAG_UPLOADS=${USE_RAG_UPLOADS}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RAG_UPLOADS_S3_BUCKET=${RAG_UPLOADS_S3_BUCKET}
+      - RAG_UPLOADS_S3_REGION=${RAG_UPLOADS_S3_REGION}
+      - USE_RAG_SCRAPING=${USE_RAG_SCRAPING}
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - USE_CHAT_WIDGET=${USE_CHAT_WIDGET}
+      - CHAT_WIDGET_HOST=http://localhost:3006
+      - CHAT_WIDGET_SESSION_JWT_SECRET=${CHAT_WIDGET_SESSION_JWT_SECRET}
+      - MAX_QUERIES_PER_MINUTE=${MAX_QUERIES_PER_MINUTE}
+      - MAX_PROJECTS_PER_USER=${MAX_PROJECTS_PER_USER}
+      - VOICE_API_URL=${VOICE_API_URL}
+    restart: unless-stopped
+
+  rowboat_agents:
+    build:
+      context: ./apps/rowboat_agents
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_KEY=${AGENTS_API_KEY}
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URI=mongodb://mongo:27017/rowboat
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: unless-stopped
+
+  copilot:
+    build:
+      context: ./apps/copilot
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_KEY=${COPILOT_API_KEY}
+    restart: unless-stopped
+
+  # tools_webhook:
+  #   build:
+  #     context: ./apps/experimental/tools_webhook
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3005:3005"
+  #   environment:
+  #     - SIGNING_SECRET=${SIGNING_SECRET}
+  #   restart: unless-stopped
+
+  # simulation_runner:
+  #   build:
+  #     context: ./apps/experimental/simulation_runner
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - MONGODB_URI=mongodb://mongo:27017/rowboat
+  #     - ROWBOAT_API_HOST=http://rowboat:3000
+  #     - OPENAI_API_KEY=${OPENAI_API_KEY}
+  #   restart: unless-stopped
+
+  setup_qdrant:
+    build:
+      context: ./apps/rowboat
+      dockerfile: scripts.Dockerfile
+    command: ["sh", "-c", "npm run setupQdrant && echo 'index created successfully'"]
+    profiles: [ "setup_qdrant" ]
+    environment:
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: no
+
+  delete_qdrant:
+    build:
+      context: ./apps/rowboat
+      dockerfile: scripts.Dockerfile
+    command: ["sh", "-c", "npm run deleteQdrant && echo 'index deleted successfully'"]
+    profiles: [ "delete_qdrant" ]
+    environment:
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: no
+
+  rag_files_worker:
+    build:
+      context: ./apps/rowboat
+      dockerfile: scripts.Dockerfile
+    command: ["npm", "run", "ragFilesWorker"]
+    profiles: [ "rag_files_worker" ]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_CONNECTION_STRING=mongodb://mongo:27017/rowboat
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - RAG_UPLOADS_S3_BUCKET=${RAG_UPLOADS_S3_BUCKET}
+      - RAG_UPLOADS_S3_REGION=${RAG_UPLOADS_S3_REGION}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: unless-stopped
+
+  rag_urls_worker:
+    build:
+      context: ./apps/rowboat
+      dockerfile: scripts.Dockerfile
+    command: ["npm", "run", "ragUrlsWorker"]
+    profiles: [ "rag_urls_worker" ]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_CONNECTION_STRING=mongodb://mongo:27017/rowboat
+      - FIRECRAWL_API_KEY=${FIRECRAWL_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: unless-stopped
+
+  rag_text_worker:
+    build:
+      context: ./apps/rowboat
+      dockerfile: scripts.Dockerfile
+    command: ["npm", "run", "ragTextWorker"]
+    profiles: [ "rag_text_worker" ]
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MONGODB_CONNECTION_STRING=mongodb://mongo:27017/rowboat
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
+    restart: unless-stopped
+
+  # chat_widget:
+  #   build:
+  #     context: ./apps/experimental/chat_widget
+  #     dockerfile: Dockerfile
+  #   profiles: [ "chat_widget" ]
+  #   ports:
+  #     - "3006:3006"
+  #   environment:
+  #     - PORT=3006
+  #     - CHAT_WIDGET_HOST=http://localhost:3006
+  #     - ROWBOAT_HOST=http://localhost:3000
+  #   restart: unless-stopped
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    attach: false
+    volumes:
+      - ./data/mongo:/data/db
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  docs:
+    build:
+      context: ./apps/docs
+      dockerfile: Dockerfile
+    profiles: [ "docs" ]
+    ports:
+      - "8000:8000"
+
+  # twilio_handler:
+  #   build:
+  #     context: ./apps/experimental/twilio_handler
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "4010:4010"
+  #   environment:
+  #     - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+  #     - ROWBOAT_API_HOST=http://rowboat:3000
+  #     - MONGODB_URI=mongodb://mongo:27017/rowboat
+  #   restart: unless-stopped
