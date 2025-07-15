@@ -1,0 +1,27 @@
+
+#uv pip install --system -r requirements.txt
+#.venv\Scripts\Activate.ps1
+#uv pip install --upgrade --force-reinstall crewai openai litellm
+#uv pip install "crewai[tools]"
+
+# Agentes e LLMs
+crewai>=0.40.0
+openai>=1.12.0
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-community>=0.0.10
+langchain-core>=0.1.10
+
+# Banco de dados e armazenamento vetorial
+psycopg2-binary>=2.9.9
+pinecone>=3.0.0  # Versão atualizada do cliente Pinecone
+
+# Ferramentas e visualização
+langgraph>=0.0.20
+matplotlib>=3.8.0
+networkx>=3.2.1
+
+# Utilitários
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+uv>=0.1.0

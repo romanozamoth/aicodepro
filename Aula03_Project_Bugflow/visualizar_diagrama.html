@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagrama do Processo BugFlow Multi Agents</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .explanation {
+            margin-top: 40px;
+            line-height: 1.6;
+        }
+        .explanation h2 {
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .explanation ol {
+            padding-left: 20px;
+        }
+        .explanation li {
+            margin-bottom: 15px;
+        }
+        .explanation strong {
+            color: #2c3e50;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Diagrama do Processo BugFlow Multi Agents</h1>
+        
+        <div class="mermaid">
+flowchart TD
+    A[Entrada do Bug] --> B[Banco de Dados Neon]
+    B --> C[Indexação Pinecone]
+    B --> D[Processamento Agentes]
+    
+    subgraph "Processamento de Bugs"
+        D --> E[AG1: Classificador de Componente]
+        E --> F[AG2: Classificador de Severidade]
+        F --> G[AG3: Analista Técnico de Bugs]
+        G --> H[AG4: Gerenciador de Resolução]
+        H --> I[AG5: Documentador de Bugs]
+    end
+    
+    C -.-> G
+    I --> J[Documentação Final]
+    
+    subgraph "Base de Conhecimento"
+        J[OpenAI API]
+        K[Vector Store - Pinecone]
+        L[DB Relacional - Neon]
+    end
+    
+    J -.-> E
+    J -.-> F
+    J -.-> G
+    J -.-> H
+    K -.-> G
+    L --> B
+    
+    style A fill:#f9d5e5,stroke:#333,stroke-width:2px
+    style J fill:#ade8f4,stroke:#333,stroke-width:2px
+    style K fill:#f0ad4e,stroke:#333,stroke-width:2px
+    style L fill:#5bc0de,stroke:#333,stroke-width:2px
+    style M fill:#5cb85c,stroke:#333,stroke-width:2px
+        </div>
+        
+        <div class="explanation">
+            <h2>Explicação do Fluxo de Processamento</h2>
+            
+            <ol>
+                <li><strong>Entrada do Bug</strong>: Um novo bug ou incidente é registrado no sistema.</li>
+                
+                <li><strong>Banco de Dados Neon</strong>: Os dados do bug são armazenados no banco PostgreSQL da Neon.</li>
+                
+                <li><strong>Indexação Pinecone</strong>: Paralelamente, o conteúdo textual do bug é convertido em embeddings e indexado no Pinecone para pesquisas semânticas e identificação de bugs similares.</li>
+                
+                <li><strong>Processamento por Agentes</strong>:
+                    <ul>
+                        <li><strong>AG1 (Classificador de Componente)</strong>: Analisa o bug e determina qual componente do sistema está afetado (Frontend, Backend, Database, etc.).</li>
+                        <li><strong>AG2 (Classificador de Severidade)</strong>: Avalia o impacto e determina a severidade do bug (Crítico, Grave, Menor).</li>
+                        <li><strong>AG3 (Analista Técnico de Bugs)</strong>: Realiza análise técnica detalhada, identifica causas raiz e sugere soluções.</li>
+                        <li><strong>AG4 (Gerenciador de Resolução)</strong>: Coordena a resolução do bug e atribui a desenvolvedores apropriados.</li>
+                        <li><strong>AG5 (Documentador de Bugs)</strong>: Cria documentação completa em formato Markdown e HTML interativo com diagrama Mermaid.</li>
+                    </ul>
+                </li>
+                
+                <li><strong>Documentação Final</strong>: Documentação completa do bug, incluindo análise, solução, testes e lições aprendidas, é gerada em formato Markdown e HTML interativo com diagrama Mermaid.</li>
+            </ol>
+            
+            <p>O diagrama também mostra as interações com:</p>
+            <ul>
+                <li><strong>OpenAI API</strong>: Fornece os modelos de IA para todos os agentes.</li>
+                <li><strong>Vector Store (Pinecone)</strong>: Armazena embeddings para consulta semântica.</li>
+                <li><strong>DB Relacional (Neon)</strong>: Armazena todos os dados estruturados dos bugs e suas resoluções.</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 BugFlow Multi Agents - Sistema Inteligente para Triagem de Bugs e Incidentes</p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: false,
+                htmlLabels: true
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BugFlow RAG - Sistema de Consulta de Bugs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            background: #1e40af;
+            color: white;
+            padding: 24px 32px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.025em;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .main-content {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+
+        .sidebar {
+            width: 320px;
+            background: #f8fafc;
+            padding: 24px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 32px;
+        }
+
+        .filter-section {
+            margin-bottom: 32px;
+        }
+
+        .filter-section h3 {
+            color: #1e293b;
+            margin-bottom: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .examples {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .examples h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .example-query {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            border: 1px solid #bbdefb;
+            transition: all 0.2s;
+        }
+
+        .example-query:hover {
+            background: #f3e5f5;
+            border-color: #9c27b0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .user-message {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .bot-message {
+            background: #f1f8e9;
+            border-left: 4px solid #4caf50;
+        }
+
+        .message {
+            margin-bottom: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .user-message {
+            background: #f1f5f9;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .assistant-message {
+            background: #fefefe;
+            border-left: 4px solid #10b981;
+        }
+
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1e293b;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .message-content {
+            line-height: 1.6;
+            color: #374151;
+        }
+
+        .message-content p {
+            margin-bottom: 12px;
+        }
+
+        .message-content ul, .message-content ol {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin-bottom: 4px;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .query-input {
+            flex: 1;
+            padding: 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .query-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .send-btn {
+            padding: 16px 24px;
+            background: #1e40af;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .send-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #9ca3af;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .bug-results {
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+        }
+
+        .bug-item {
+            background: white;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+
+        .bug-id {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        .bug-score {
+            color: #1976d2;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BugFlow RAG</h1>
+            <p>Sistema Inteligente de Consulta de Bugs</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="filter-section">
+                    <h3>Filtros de Busca</h3>
+                    
+                    <div class="filter-group">
+                        <label for="componente">Componente:</label>
+                        <select id="componente">
+                            <option value="">Todos</option>
+                            <option value="Frontend">Frontend</option>
+                            <option value="Backend">Backend</option>
+                            <option value="Database">Database</option>
+                            <option value="DevOps">DevOps</option>
+                            <option value="Security">Security</option>
+                            <option value="Integration">Integration</option>
+                            <option value="UI/UX">UI/UX</option>
+                            <option value="Infrastructure">Infrastructure</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="severidade">Severidade:</label>
+                        <select id="severidade">
+                            <option value="">Todas</option>
+                            <option value="Crítica">Crítica</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Média">Média</option>
+                            <option value="Baixa">Baixa</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="top_k">Número de resultados:</label>
+                        <select id="top_k">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="examples">
+                    <h4>💡 Exemplos de Consultas</h4>
+                    <div class="example-query" onclick="setQuery('Quais são os bugs mais críticos de segurança?')">
+                        Bugs críticos de segurança
+                    </div>
+                    <div class="example-query" onclick="setQuery('Problemas relacionados ao frontend')">
+                        Problemas de frontend
+                    </div>
+                    <div class="example-query" onclick="setQuery('Bugs de performance no backend')">
+                        Performance no backend
+                    </div>
+                    <div class="example-query" onclick="setQuery('Vulnerabilidades encontradas')">
+                        Vulnerabilidades
+                    </div>
+                    <div class="example-query" onclick="setQuery('Problemas de integração com APIs')">
+                        Integração com APIs
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h3>Controles</h3>
+                    <button type="button" onclick="clearHistory()" style="background: #dc2626; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px;">
+                        Limpar Histórico
+                    </button>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot-message">
+                        <div class="message-header">🤖 Assistente BugFlow</div>
+                        <div>Olá! Sou seu assistente especializado em análise de bugs. Faça perguntas sobre o histórico de bugs da empresa e eu te ajudarei com informações precisas e insights úteis.</div>
+                    </div>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <div>Processando sua consulta...</div>
+                </div>
+
+                <div class="input-area">
+                    <input type="text" id="queryInput" class="query-input" placeholder="Digite sua pergunta sobre bugs..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendQuery()" class="send-btn" id="sendBtn">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setQuery(query) {
+            document.getElementById('queryInput').value = query;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendQuery();
+            }
+        }
+
+        async function sendQuery() {
+            const queryInput = document.getElementById('queryInput');
+            const query = queryInput.value.trim();
+            
+            if (!query) {
+                alert('Por favor, digite uma pergunta');
+                return;
+            }
+
+            const sendBtn = document.getElementById('sendBtn');
+            const loading = document.getElementById('loading');
+            const chatMessages = document.getElementById('chatMessages');
+
+            // Desabilitar botão e mostrar loading
+            sendBtn.disabled = true;
+            loading.style.display = 'block';
+
+            // Adicionar mensagem do usuário
+            addMessage('user', query);
+            queryInput.value = '';
+
+            try {
+                // Preparar dados
+                const filters = {
+                    componente: document.getElementById('componente').value,
+                    severidade: document.getElementById('severidade').value
+                };
+
+                const data = {
+                    query: query,
+                    filters: filters,
+                    top_k: parseInt(document.getElementById('top_k').value)
+                };
+
+                // Fazer requisição
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addMessage('bot', result.response, result.bugs_encontrados);
+                } else {
+                    addMessage('bot', `❌ Erro: ${result.response}`);
+                }
+
+            } catch (error) {
+                addMessage('bot', `❌ Erro de conexão: ${error.message}`);
+            } finally {
+                // Reabilitar botão e esconder loading
+                sendBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function addMessage(type, content, bugs = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+
+            const header = type === 'user' ? 'Usuário' : 'Assistente BugFlow';
+            
+            // Formatar conteúdo com quebras de linha e parágrafos
+            const formattedContent = content
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            let messageHTML = `
+                <div class="message-header">${header}</div>
+                <div class="message-content"><p>${formattedContent}</p></div>
+            `;
+
+            if (bugs && bugs.length > 0) {
+                messageHTML += '<div class="bug-results"><strong>Bugs Relacionados:</strong>';
+                bugs.forEach(bug => {
+                    const metadata = bug.metadata || {};
+                    messageHTML += `
+                        <div class="bug-item">
+                            <span class="bug-id">Bug #${bug.id}</span> 
+                            <span class="bug-score">(${(bug.score * 100).toFixed(1)}% relevante)</span><br>
+                            <strong>Componente:</strong> ${metadata.componente || 'N/A'}<br>
+                            <strong>Severidade:</strong> ${metadata.severidade || 'N/A'}
+                        </div>
+                    `;
+                });
+                messageHTML += '</div>';
+            }
+
+            messageDiv.innerHTML = messageHTML;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function clearHistory() {
+            try {
+                const response = await fetch('/clear-history', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Limpar mensagens do chat (manter apenas a mensagem inicial)
+                    const chatMessages = document.getElementById('chatMessages');
+                    const initialMessage = chatMessages.querySelector('.bot-message');
+                    chatMessages.innerHTML = '';
+                    chatMessages.appendChild(initialMessage);
+                    
+                    // Mostrar confirmação
+                    addMessage('bot', '✅ Histórico conversacional limpo com sucesso!');
+                } else {
+                    addMessage('bot', `❌ Erro ao limpar histórico: ${result.message}`);
+                }
+            } catch (error) {
+                addMessage('bot', `❌ Erro de conexão: ${error.message}`);
+            }
+        }
+
+        // Carregar estatísticas ao iniciar
+        window.onload = async function() {
+            try {
+                const response = await fetch('/stats');
+                const stats = await response.json();
+                
+                if (stats.total_vectors) {
+                    console.log(`📊 Base de dados: ${stats.total_vectors} bugs indexados`);
+                }
+            } catch (error) {
+                console.log('Não foi possível carregar estatísticas');
+            }
+        };
+    </script>
+</body>
+</html>

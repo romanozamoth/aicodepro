@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentação do Bug - Visualização Interativa</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .mermaid {
+            margin-top: 20px;
+        }
+    </style>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</head>
+<body>
+    <h1>Documentação do Bug - Visualização Interativa</h1>
+    <h2>Fluxo de Resolução do Bug</h2>
+    <div class="mermaid">
+        graph TD;
+            A[Identificação do Bug] --> B[Análise Técnica]
+            B --> C{Causa Raiz}
+            C -->|Erro no Ciclo de Vida| D[Revisão da Lógica de Estado]
+            C -->|Falha na Integração com API| E[Correção na Integração]
+            D --> F[Testes Abrangentes]
+            E --> F
+            F --> G[Implementação da Solução]
+            G --> H[Validação e Deploy]
+    </div>
+</body>
+</html>

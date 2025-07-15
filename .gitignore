@@ -1,0 +1,68 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Arquivos de log e cache
+*.log
+*.sqlite3
+*.db
+*.tmp
+
+# Ambientes virtuais
+venv/
+env/
+ENV/
+.venv/
+
+# Arquivos .env e similares (variáveis de ambiente e segredos)
+# Ignorar todos os arquivos chamados ".env" em qualquer pasta
+.env
+**/.env
+# Ignorar arquivos com padrão .env.*
+.env.*
+
+# Arquivos de Jupyter
+.ipynb_checkpoints/
+
+# Dados gerados
+/data/
+*.csv
+*.tsv
+*.parquet
+*.h5
+
+# MongoDB ou bancos locais
+**/data/mongo/
+**/dump/
+**/journal/
+**/WiredTiger*
+
+# === IDEs / editores ===
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Arquivos temporários do sistema / editores
+*.bak
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# Git e segurança (certificados, chaves)
+*.pem
+*.key
+*.crt
+*.p12
+
+# Node/npm (se houver frontend)
+node_modules/
+dist/
+build/
